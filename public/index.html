@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Responsive Card Display</title>
+    <link href="style.css" rel="stylesheet">
+</head>
+
+<body>
+    <div class="container" id="container">
+    </div>
+
+    <script>
+
+        let places = [];
+        let tagDetails = [];
+
+        async function loadData(url) {
+            try {
+                const res = await fetch(url);
+                if (!res.ok) {
+                    throw new Error("Failed to fetch data");
+                }
+
+                const data = await res.json();
+                return data;
+            }
+            catch (error) {
+                console.error(error);
+                throw error;
+            }
+        }
+
+        async function displayContent() {
+            try {
+                const container = document.getElementById("container");
+                container.innerHtml = '';
+
+                places.forEach((place) => {
+                    const imageUrl = place.img_url;
+                    const body = place.body;
+                    const name = place.name;
+                    const placeId = place.id;
+
+                    const tags = tagDetails.filter((detail) => {
+                        return place.tags.includes(detail.id)
+                    });
+
+
+                    const cardHtml = `
+                    <div class="card" id=${placeId}>
+                        <div class="card-header">
+                        </div>
+                        <div class="card-body">
+                            <div class="image-container">
+                                <img src=${imageUrl} alt="place" />
+                                <div class="overlay">${name}</div>
+                            </div>
+                            <div class="content-body">
+                                <p>${body}</p>
+                            </div>
+                        </div>
+                        <div class="card-footer" id="tag_${place.id}">
+                        </div>
+                    </div>
+                    `;
+
+                    container.innerHTML += cardHtml;
+
+                    tags.forEach((tag)=> {
+                        const tagPlaceHolder = document.getElementById(`tag_${place.id}`);
+                        tagPlaceHolder.innerHTML += `
+                            <div class="tag">
+                                <span>${tag.name}</span>
+                            </div>
+                        `;
+                    });
+                    
+                })
+            }
+            catch (error) {
+                throw new Error(error);
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            const placesUrl = "https://gist.githubusercontent.com/knot-freshket/142c21c3e8e54ef36e33f5dc6cf54077/raw/94ebab16839484f06d42eb799e30d0a945ff1a1b/freshket-places.json";
+            const tagsUrl = "https://gist.githubusercontent.com/knot-freshket/fa49e0a5c6100d50db781f28486324d2/raw/55bc966f54423dc73384b860a305e1b67e0bfd7d/freshket-tags.json";
+
+            places = await loadData(placesUrl);
+            tagDetails = await loadData(tagsUrl);
+
+            await displayContent();
+        });
+    </script>
+</body>
